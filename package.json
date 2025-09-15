@@ -1,0 +1,16 @@
+{
+  "name": "llm-knowledge-extractor",
+  "version": "1.0.0",
+  "description": "AI-powered text analysis tool with FastAPI backend and React frontend",
+  "scripts": {
+    "dev": "./start.sh",
+    "backend": "cd backend && python main.py",
+    "frontend": "cd frontend && npm run dev",
+    "install:backend": "cd backend && pip install -r requirements.txt",
+    "install:frontend": "cd frontend && npm install",
+    "install:all": "npm run install:backend && npm run install:frontend"
+  },
+  "keywords": ["ai", "llm", "text-analysis", "fastapi", "react", "typescript"],
+  "author": "Your Name",
+  "license": "MIT"
+}
