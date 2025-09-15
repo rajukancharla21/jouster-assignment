@@ -31,5 +31,16 @@ export interface SearchParams {
   sortBy?: 'newest' | 'oldest' | 'sentiment';
 }
 
-// Re-export all interfaces for easier importing
-export type { TextAnalysis, TextAnalysisRequest, SearchParams };
+export interface URLExtractionRequest {
+  url: string;
+}
+
+export interface URLExtractionResponse {
+  success: boolean;
+  content?: string;
+  title?: string;
+  url?: string;
+  word_count?: number;
+  extracted_at?: string;
+  error?: string;
+}

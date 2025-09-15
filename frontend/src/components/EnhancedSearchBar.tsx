@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Badge } from './ui/badge';
-import { SearchParams } from '../types';
+import type { SearchParams } from '../types';
 
 interface EnhancedSearchBarProps {
   onSearch: (params: SearchParams) => void;
@@ -58,91 +56,107 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
           Search & Filter
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <form onSubmit={handleSearch} className="space-y-4">
-          {/* Search Type */}
-          <div>
-            <Label className="text-sm font-medium">Search Type</Label>
-            <RadioGroup
-              value={searchType}
-              onValueChange={(value: 'topic' | 'keyword') => setSearchType(value)}
-              className="flex gap-4 mt-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="topic" id="topic" />
-                <Label htmlFor="topic">By Topic</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="keyword" id="keyword" />
-                <Label htmlFor="keyword">By Keyword</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Search Query */}
-          <div>
-            <Label htmlFor="query">Search Query</Label>
-            <div className="flex gap-2 mt-2">
-              <Input
-                id="query"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={`Search by ${searchType}...`}
-                className="flex-1"
-                disabled={loading}
-              />
-              <Button type="submit" disabled={loading || !query.trim()}>
-                {loading ? 'Searching...' : '🔍'}
-              </Button>
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Sentiment Filter */}
-            <div>
-              <Label className="text-sm font-medium">Sentiment Filter</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {sentimentOptions.map((option) => (
-                  <Badge
-                    key={option.value}
-                    variant={sentimentFilter === option.value ? 'default' : 'outline'}
-                    className={`cursor-pointer ${option.color}`}
-                    onClick={() => setSentimentFilter(option.value)}
-                  >
-                    {option.label}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            {/* Sort By */}
-            <div>
-              <Label className="text-sm font-medium">Sort By</Label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest' | 'sentiment')}
-                className="w-full mt-2 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+      <CardContent className="space-y-3">
+        <form onSubmit={handleSearch} className="space-y-3">
+          {/* Search Row */}
+          <div className="flex gap-2 items-center">
+            {/* Search Type Toggle */}
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => setSearchType('topic')}
+                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                  searchType === 'topic' 
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
               >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="sentiment">By Sentiment</option>
-              </select>
+                Topic
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearchType('keyword')}
+                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                  searchType === 'keyword' 
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Keyword
+              </button>
             </div>
+
+            {/* Search Input */}
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={`Search by ${searchType}...`}
+              disabled={loading}
+              className="flex-1"
+            />
+
+            {/* Search Button */}
+            <Button type="submit" disabled={loading || !query.trim()}>
+              {loading ? '⏳' : '🔍'}
+            </Button>
+          </div>
+
+          {/* Filter Row */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600 font-medium">Filter:</span>
+            <div className="flex gap-1">
+              {sentimentOptions.map((option) => (
+                <Badge
+                  key={option.value}
+                  variant={sentimentFilter === option.value ? 'default' : 'outline'}
+                  className={`cursor-pointer transition-colors ${
+                    sentimentFilter === option.value 
+                      ? option.color 
+                      : 'hover:bg-gray-100'
+                  }`}
+                  onClick={() => setSentimentFilter(option.value)}
+                >
+                  {option.label}
+                </Badge>
+              ))}
+            </div>
+            
+            <span className="text-sm text-gray-600 font-medium ml-4">Sort:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest' | 'sentiment')}
+              className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="sentiment">Sentiment</option>
+            </select>
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-2">
-            <Button type="submit" disabled={loading || !query.trim()} className="flex-1">
-              {loading ? 'Searching...' : '🔍 Search Analyses'}
-            </Button>
             <Button
               type="button"
               variant="outline"
               onClick={handleClear}
               disabled={loading}
+              className="flex-1"
             >
               Clear
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setQuery('');
+                setSentimentFilter('all');
+                setSortBy('newest');
+                onClear();
+              }}
+              className="flex-1"
+              disabled={loading}
+            >
+              Show All
             </Button>
           </div>
         </form>

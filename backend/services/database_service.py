@@ -13,7 +13,6 @@ class DatabaseService:
         if config.is_supabase_available():
             try:
                 supabase_config = config.get_supabase_config()
-                print("supabase_config", supabase_config)
                 self.supabase = create_client(
                     supabase_config["url"], 
                     supabase_config["api_key"]
@@ -72,7 +71,7 @@ class DatabaseService:
             print("⚠️  Returning mock ID for demo")
             return analysis_id
     
-    async def search_analyses(self, topic: Optional[str] = None, keyword: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def search_analyses(self, topic: Optional[str] = None, keyword: Optional[str] = None, sentiment: Optional[str] = None, sortBy: Optional[str] = "newest") -> List[Dict[str, Any]]:
         """
         Search analyses by topic or keyword
         """
@@ -81,45 +80,69 @@ class DatabaseService:
             return []
             
         try:
-            query = self.supabase.table(self.table_name).select("*")
-            
-            if topic:
-                # Search in topics array
-                query = query.contains("topics", [topic])
-            elif keyword:
-                # Search in keywords array
-                query = query.contains("keywords", [keyword])
-            
-            result = query.order("created_at", desc=True).execute()
+            # Get all analyses first, then filter in Python
+            # This is more reliable than complex Supabase JSON queries
+            result = self.supabase.table(self.table_name).select("*").order("created_at", desc=True).execute()
             
             if not result.data:
+                print(f"🔍 No analyses found in database")
                 return []
             
             analyses = []
-            for item in result.data:
-                analysis = {
-                    "id": item["id"],
-                    "summary": item["summary"],
-                    "title": item.get("title"),
-                    "topics": item.get("topics", []),
-                    "sentiment": item["sentiment"],
-                    "keywords": item.get("keywords", []),
-                    "confidence_score": float(item["confidence_score"]),
-                    "entities": item.get("entities", {}),
-                    "phrases": item.get("phrases", []),
-                    "readability_score": float(item.get("readability_score")) if item.get("readability_score") else None,
-                    "word_count": item.get("word_count"),
-                    "sentence_count": item.get("sentence_count"),
-                    "created_at": item["created_at"]
-                }
-                analyses.append(analysis)
+            search_term = topic or keyword
+            search_field = "topics" if topic else "keywords"
             
-            print(f"🔍 Found {len(analyses)} analyses")
+            for item in result.data:
+                # Check if search term exists in the specified field
+                field_data = item.get(search_field, [])
+                if isinstance(field_data, list):
+                    # Check if any item in the list contains the search term (case insensitive)
+                    matches = any(search_term.lower() in str(field_item).lower() for field_item in field_data)
+                else:
+                    # Fallback for string fields
+                    matches = search_term.lower() in str(field_data).lower()
+                
+                # Check sentiment filter if provided
+                sentiment_matches = True
+                if sentiment and sentiment != "all":
+                    sentiment_matches = item.get("sentiment", "").lower() == sentiment.lower()
+                
+                if matches and sentiment_matches:
+                    analysis = {
+                        "id": item["id"],
+                        "summary": item["summary"],
+                        "title": item.get("title"),
+                        "topics": item.get("topics", []),
+                        "sentiment": item["sentiment"],
+                        "keywords": item.get("keywords", []),
+                        "confidence_score": float(item["confidence_score"]),
+                        "entities": item.get("entities", {}),
+                        "phrases": item.get("phrases", []),
+                        "readability_score": float(item.get("readability_score")) if item.get("readability_score") else None,
+                        "word_count": item.get("word_count"),
+                        "sentence_count": item.get("sentence_count"),
+                        "created_at": item["created_at"]
+                    }
+                    analyses.append(analysis)
+            
+            # Apply sorting
+            if sortBy == "oldest":
+                analyses.sort(key=lambda x: x["created_at"])
+            elif sortBy == "sentiment":
+                # Sort by sentiment: positive, neutral, negative
+                sentiment_order = {"positive": 0, "neutral": 1, "negative": 2}
+                analyses.sort(key=lambda x: sentiment_order.get(x["sentiment"], 3))
+            # Default is "newest" which is already sorted by created_at desc from the query
+            
+            print(f"🔍 Found {len(analyses)} analyses matching '{search_term}' in {search_field}" + 
+                  (f" with sentiment '{sentiment}'" if sentiment and sentiment != "all" else "") +
+                  f" sorted by {sortBy}")
             return analyses
             
         except Exception as e:
             print(f"❌ Database search error: {str(e)}")
-            raise Exception(f"Failed to search analyses: {str(e)}")
+            # Return empty list instead of crashing
+            return []
     
     async def get_all_analyses(self) -> List[Dict[str, Any]]:
         """

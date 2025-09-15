@@ -3,8 +3,9 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AnimatedHero from './components/AnimatedHero';
 import EnhancedTextAnalyzer from './components/EnhancedTextAnalyzer';
 import EnhancedSearchBar from './components/EnhancedSearchBar';
-import EnhancedAnalysisCard from './components/EnhancedAnalysisCard';
 import AnalysisModal from './components/AnalysisModal';
+import { Badge } from './components/ui/badge';
+import { Button } from './components/ui/button';
 import type { TextAnalysis, TextAnalysisRequest, SearchParams } from './types';
 import { analyzeText, searchAnalyses, getAllAnalyses } from './services/api';
 
@@ -124,17 +125,25 @@ function App() {
         <AnimatedHero texts={animatedTexts} />
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <EnhancedTextAnalyzer 
-            onAnalyze={handleAnalyze} 
-            loading={loading} 
-            error={error} 
-          />
-          <EnhancedSearchBar 
-            onSearch={handleSearch} 
-            onClear={handleClearSearch} 
-            loading={isSearching} 
-          />
+        <div className="space-y-6 mb-8">
+          {/* Analyze Content - Full Width */}
+          <div className="w-full">
+            <EnhancedTextAnalyzer 
+              onAnalyze={handleAnalyze} 
+              loading={loading} 
+              error={error}
+              onError={setError}
+            />
+          </div>
+          
+          {/* Search & Filter - Full Width */}
+          <div className="w-full">
+            <EnhancedSearchBar 
+              onSearch={handleSearch} 
+              onClear={handleClearSearch} 
+              loading={isSearching} 
+            />
+          </div>
         </div>
 
         {/* Analysis Results */}
@@ -179,11 +188,47 @@ function App() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayAnalyses.map((analysis) => (
-                <EnhancedAnalysisCard
-                  key={analysis.id}
-                  analysis={analysis}
-                  onViewDetails={handleViewDetails}
-                />
+                <div key={analysis.id} className="bg-white rounded-lg border p-6 hover:shadow-lg transition-shadow">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                        {analysis.title || 'Untitled Analysis'}
+                      </h3>
+                      <Badge className={`ml-2 ${
+                        analysis.sentiment === 'positive' ? 'bg-green-100 text-green-800' :
+                        analysis.sentiment === 'negative' ? 'bg-red-100 text-red-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {analysis.sentiment === 'positive' ? '😊' : 
+                         analysis.sentiment === 'negative' ? '😞' : '😐'} {analysis.sentiment}
+                      </Badge>
+                    </div>
+                    
+                    <p className="text-gray-600 text-sm line-clamp-3">
+                      {analysis.summary}
+                    </p>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span>📅 {new Date(analysis.created_at).toLocaleDateString()}</span>
+                        <span>📝 {analysis.word_count || 0} words</span>
+                      </div>
+                      {analysis.readability_score && (
+                        <div className="text-sm text-gray-500">
+                          📊 Readability: {analysis.readability_score.toFixed(1)}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <Button
+                      onClick={() => handleViewDetails(analysis)}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      View Details
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
           )}

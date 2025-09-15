@@ -6,19 +6,21 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Alert } from './ui/alert';
 import { Badge } from './ui/badge';
-import { TextAnalysisRequest } from '../types';
-import { extractContentFromUrl } from '../services/urlExtractor';
+import type { TextAnalysisRequest } from '../types';
+import { extractUrlContent } from '../services/api';
 
 interface EnhancedTextAnalyzerProps {
   onAnalyze: (request: TextAnalysisRequest) => void;
   loading: boolean;
   error: string | null;
+  onError: (error: string | null) => void;
 }
 
 const EnhancedTextAnalyzer: React.FC<EnhancedTextAnalyzerProps> = ({
   onAnalyze,
   loading,
-  error
+  error,
+  onError
 }) => {
   const [text, setText] = useState('');
   const [url, setUrl] = useState('');
@@ -27,17 +29,23 @@ const EnhancedTextAnalyzer: React.FC<EnhancedTextAnalyzerProps> = ({
 
   const handleUrlExtraction = async (url: string) => {
     setIsExtracting(true);
+    onError(null);
     try {
-      const result = await extractContentFromUrl(url);
+      console.log('🔗 Extracting content from URL:', url);
+      const result = await extractUrlContent({ url });
       
-      if (result.success) {
+      if (result.success && result.content) {
+        console.log('✅ URL extraction successful, content length:', result.content.length);
         setText(result.content);
         setInputMode('text');
+        setUrl(''); // Clear URL input
       } else {
-        setError(result.error || 'Failed to extract content from URL');
+        console.error('❌ URL extraction failed:', result.error);
+        onError(result.error || 'Failed to extract content from URL');
       }
     } catch (err) {
-      setError('Failed to extract content from URL. Please try again.');
+      console.error('❌ URL extraction error:', err);
+      onError('Failed to extract content from URL. Please check the URL and try again.');
     } finally {
       setIsExtracting(false);
     }
@@ -140,9 +148,12 @@ const EnhancedTextAnalyzer: React.FC<EnhancedTextAnalyzerProps> = ({
             </Button>
             
             {isExtracting && (
-              <div className="text-sm text-gray-600 text-center">
-                <p>🔄 Extracting content from URL...</p>
-                <p className="text-xs mt-1">This may take a few seconds</p>
+              <div className="text-sm text-gray-600 text-center p-4 bg-blue-50 rounded-lg">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span className="font-medium">Extracting content from URL...</span>
+                </div>
+                <p className="text-xs">This may take a few seconds depending on the website</p>
               </div>
             )}
           </form>

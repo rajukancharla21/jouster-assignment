@@ -1,7 +1,12 @@
 import axios from 'axios';
-import type { TextAnalysis, TextAnalysisRequest, SearchParams } from '../types';
+import type { TextAnalysis, TextAnalysisRequest, SearchParams, URLExtractionRequest, URLExtractionResponse } from '../types';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+// Log the API URL being used (only in development)
+if (import.meta.env.DEV) {
+  console.log(`🌐 Using API URL: ${API_BASE_URL}`);
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -67,6 +72,18 @@ export const getAllAnalyses = async (): Promise<{ analyses: TextAnalysis[] }> =>
     return response.data;
   } catch (error) {
     console.error('❌ Failed to fetch analyses:', error);
+    throw error;
+  }
+};
+
+export const extractUrlContent = async (request: URLExtractionRequest): Promise<URLExtractionResponse> => {
+  try {
+    console.log('🔗 Extracting content from URL...', request.url);
+    const response = await api.post('/extract-url', request);
+    console.log('✅ URL extraction completed');
+    return response.data;
+  } catch (error) {
+    console.error('❌ URL extraction failed:', error);
     throw error;
   }
 };

@@ -7,6 +7,7 @@ from datetime import datetime
 from services.llm_service import LLMService
 from services.database_service import DatabaseService
 from services.text_processor import TextProcessor
+from services.url_extractor import url_extractor
 
 app = FastAPI(title="LLM Knowledge Extractor", version="1.0.0")
 
@@ -47,6 +48,18 @@ class SearchRequest(BaseModel):
     topic: Optional[str] = None
     keyword: Optional[str] = None
 
+class URLExtractionRequest(BaseModel):
+    url: str
+
+class URLExtractionResponse(BaseModel):
+    success: bool
+    content: Optional[str] = None
+    title: Optional[str] = None
+    url: Optional[str] = None
+    word_count: Optional[int] = None
+    extracted_at: Optional[str] = None
+    error: Optional[str] = None
+
 @app.get("/")
 async def root():
     return {"message": "LLM Knowledge Extractor API", "status": "running"}
@@ -59,6 +72,21 @@ async def health_check():
         "database": "connected" if db_service.supabase else "disconnected",
         "llm": "available" if llm_service.client else "unavailable"
     }
+
+@app.post("/extract-url", response_model=URLExtractionResponse)
+async def extract_url_content(request: URLExtractionRequest):
+    """Extract text content from a URL"""
+    try:
+        print(f"🔗 API: Extracting content from URL: {request.url}")
+        result = url_extractor.extract_content_from_url(request.url)
+        print(f"🔗 API: URL extraction {'successful' if result['success'] else 'failed'}")
+        return URLExtractionResponse(**result)
+    except Exception as e:
+        print(f"❌ API: URL extraction error: {str(e)}")
+        return URLExtractionResponse(
+            success=False,
+            error=f"URL extraction failed: {str(e)}"
+        )
 
 @app.post("/analyze", response_model=TextAnalysisResponse)
 async def analyze_text(request: TextAnalysisRequest):
@@ -121,15 +149,23 @@ async def analyze_text(request: TextAnalysisRequest):
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 @app.get("/search")
-async def search_analyses(topic: Optional[str] = None, keyword: Optional[str] = None):
+async def search_analyses(
+    topic: Optional[str] = None, 
+    keyword: Optional[str] = None, 
+    sentiment: Optional[str] = None,
+    sortBy: Optional[str] = "newest"
+):
     try:
         if not topic and not keyword:
             raise HTTPException(status_code=400, detail="Either topic or keyword parameter is required")
         
-        results = await db_service.search_analyses(topic, keyword)
+        print(f"🔍 API: Searching for topic='{topic}', keyword='{keyword}', sentiment='{sentiment}', sortBy='{sortBy}'")
+        results = await db_service.search_analyses(topic, keyword, sentiment, sortBy)
+        print(f"🔍 API: Found {len(results)} search results")
         return {"analyses": results}
         
     except Exception as e:
+        print(f"❌ API: Search error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
 
 @app.get("/analyses")
