@@ -87,3 +87,25 @@ export const extractUrlContent = async (request: URLExtractionRequest): Promise<
     throw error;
   }
 };
+
+export const checkBackendHealth = async (): Promise<boolean> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/health`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Short timeout for health checks
+      signal: AbortSignal.timeout(5000)
+    });
+    
+    console.log('📊 Health check response status:', response.status);
+    const data = await response.json();
+    console.log('📊 Health check response data:', data);
+    
+    return response.ok;
+  } catch (error) {
+    console.log('💔 Health check failed:', error);
+    return false;
+  }
+};

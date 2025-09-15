@@ -7,7 +7,7 @@ import AnalysisModal from './components/AnalysisModal';
 import { Badge } from './components/ui/badge';
 import { Button } from './components/ui/button';
 import type { TextAnalysis, TextAnalysisRequest, SearchParams } from './types';
-import { analyzeText, searchAnalyses, getAllAnalyses } from './services/api';
+import { analyzeText, searchAnalyses, getAllAnalyses, checkBackendHealth } from './services/api';
 
 function App() {
   const [analyses, setAnalyses] = useState<TextAnalysis[]>([]);
@@ -17,6 +17,7 @@ function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedAnalysis, setSelectedAnalysis] = useState<TextAnalysis | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking');
 
   const animatedTexts = [
     "Uncover today?",
@@ -31,6 +32,31 @@ function App() {
 
   useEffect(() => {
     loadAnalyses();
+    
+    // Keep backend alive with periodic health checks
+    const keepAlive = async () => {
+      setBackendStatus('checking');
+      console.log('🔄 Checking backend health...');
+      const isHealthy = await checkBackendHealth();
+      console.log(isHealthy)
+      if (isHealthy) {
+        console.log('💚 Backend health check successful');
+        setBackendStatus('online');
+      } else {
+        console.log('💔 Backend health check failed');
+        setBackendStatus('offline');
+      }
+    };
+
+    // Initial health check
+    keepAlive();
+    
+    // Set up interval to ping backend every 4 minutes (240 seconds)
+    // Render free tier spins down after 15 minutes of inactivity
+    const healthCheckInterval = setInterval(keepAlive, 4 * 60 * 1000);
+    
+    // Cleanup interval on component unmount
+    return () => clearInterval(healthCheckInterval);
   }, []);
 
   const loadAnalyses = async () => {
@@ -114,6 +140,27 @@ function App() {
           <h1 className="text-5xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
             🧠 LLM Knowledge Extractor
           </h1>
+          
+          {/* Backend Status Indicator */}
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className={`w-2 h-2 rounded-full ${
+              backendStatus === 'online' ? 'bg-green-500' :
+              backendStatus === 'offline' ? 'bg-red-500' :
+              'bg-yellow-500 animate-pulse'
+            }`}></div>
+            <span className="text-sm text-gray-600">
+              Backend: {
+                backendStatus === 'online' ? '🟢 Online' :
+                backendStatus === 'offline' ? '🔴 Offline' :
+                '🟡 Checking...'
+              }
+            </span>
+            {backendStatus === 'online' && (
+              <span className="text-xs text-green-600 ml-2">
+                (Auto-keepalive active)
+              </span>
+            )}
+          </div>
         </header>
 
         {/* Analytics Dashboard */}
@@ -128,21 +175,21 @@ function App() {
         <div className="space-y-6 mb-8">
           {/* Analyze Content - Full Width */}
           <div className="w-full">
-            <EnhancedTextAnalyzer 
-              onAnalyze={handleAnalyze} 
-              loading={loading} 
-              error={error}
+          <EnhancedTextAnalyzer 
+            onAnalyze={handleAnalyze} 
+            loading={loading} 
+            error={error} 
               onError={setError}
-            />
+          />
           </div>
           
           {/* Search & Filter - Full Width */}
           <div className="w-full">
-            <EnhancedSearchBar 
-              onSearch={handleSearch} 
-              onClear={handleClearSearch} 
-              loading={isSearching} 
-            />
+          <EnhancedSearchBar 
+            onSearch={handleSearch} 
+            onClear={handleClearSearch} 
+            loading={isSearching} 
+          />
           </div>
         </div>
 
