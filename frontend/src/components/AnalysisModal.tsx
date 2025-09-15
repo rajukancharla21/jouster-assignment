@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextAnalysis } from '../types';
+import type { TextAnalysis } from '../types';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 
@@ -48,7 +48,7 @@ const AnalysisModal: React.FC<AnalysisModalProps> = ({
         hour: '2-digit',
         minute: '2-digit'
       });
-    } catch (error) {
+    } catch {
       return 'Just now';
     }
   };

@@ -1,6 +1,6 @@
-import { TextAnalysis } from '../types';
-import { RefreshCw, Calendar, TrendingUp, Hash, Target, BarChart3, Users, Building, MapPin, BookOpen, FileText } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import type { TextAnalysis } from '../types';
+import { RefreshCw, Calendar, TrendingUp, Hash, Target, BarChart3, Users, Building, MapPin, FileText } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Skeleton } from './ui/skeleton';

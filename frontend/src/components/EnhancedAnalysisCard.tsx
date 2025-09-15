@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { TextAnalysis } from '../types';
+import type { TextAnalysis } from '../types';
 
 interface EnhancedAnalysisCardProps {
   analysis: TextAnalysis;
@@ -44,7 +44,7 @@ const EnhancedAnalysisCard: React.FC<EnhancedAnalysisCardProps> = ({
         hour: '2-digit',
         minute: '2-digit'
       });
-    } catch (error) {
+    } catch {
       return 'Just now';
     }
   };
