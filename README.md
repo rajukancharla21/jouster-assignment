@@ -37,6 +37,20 @@ A full-stack application that uses AI to extract structured insights from unstru
 - **HTTP Client**: Axios for API communication
 - **UI Components**: Modular, reusable components with proper TypeScript interfaces
 
+## 🌐 Live Demo
+
+**Frontend (Vercel)**: [https://jouster-assignment.vercel.app/](https://jouster-assignment.vercel.app/)
+- ✅ Auto-keep active enabled
+- 🚀 Fast global CDN delivery
+- 📱 Mobile-responsive design
+
+**Backend (Render)**: [https://jouster-assignment.onrender.com/](https://jouster-assignment.onrender.com/)
+- ⚠️ **Important**: Backend goes offline after 50 seconds of inactivity
+- 🔄 **To wake up**: Click the backend link first, then use the frontend
+- 🛠️ Health check endpoint: `/health`
+
+> **Note**: The backend is hosted on Render's free tier which spins down after inactivity. Simply click the backend URL to wake it up, then use the frontend normally.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -220,6 +234,27 @@ Hey! I wanted to share my thought process behind the technical decisions I made 
 - **Custom CSS vs Framework**: I chose custom CSS for complete design control. Tailwind would have been faster, but I wanted to show I can write clean CSS.
 - **REST vs GraphQL**: I used REST because it's simpler and faster to develop. GraphQL would be better for complex queries, but REST works fine here.
 
+## 🚀 Deployment Configuration
+
+### Frontend (Vercel)
+- **Framework**: Vite + React with TypeScript
+- **Build Command**: `cd frontend && npm run build`
+- **Output Directory**: `frontend/dist`
+- **Auto-keep Active**: Configured via `vercel.json` with proper function settings
+- **CDN**: Global edge network for fast loading
+
+### Backend (Render)
+- **Framework**: FastAPI with Python 3.8+
+- **Auto-deploy**: Connected to GitHub main branch
+- **Environment**: Production with all required environment variables
+- **Limitations**: Free tier spins down after 50 seconds of inactivity
+
+### Environment Variables
+Both deployments use the same environment variables:
+- `OPENAI_API_KEY`: Your OpenAI API key
+- `SUPABASE_URL`: Your Supabase project URL
+- `SUPABASE_API_KEY`: Your Supabase API key
+
 ## 🚀 What I'd Add Next (If I Had More Time)
 
 If I had more time, here's what I'd love to add:
@@ -236,6 +271,23 @@ If I had more time, here's what I'd love to add:
 ## 🎯 My 3-5 Sentence Design Summary
 
 I built this as a full-stack application with FastAPI and React because I wanted to demonstrate both backend API design skills and modern frontend development. I chose Supabase over SQLite for better scalability and real-time capabilities, and implemented a service layer pattern to keep the code clean and testable. The frontend uses TypeScript for type safety and custom CSS for complete design control, while the backend handles LLM integration with proper error handling and async processing. I focused on creating a production-ready application that's both functional and maintainable, with a beautiful UI that works great on mobile devices.
+
+## 🔧 Troubleshooting
+
+### Backend Issues
+- **"Backend is offline"**: Click the backend URL first to wake it up, then use the frontend
+- **"Connection timeout"**: Wait 30-60 seconds for the backend to fully start up
+- **"API not responding"**: Check if the backend URL is accessible in your browser
+
+### Frontend Issues
+- **"Auto-keep active not working"**: The `vercel.json` configuration should handle this automatically
+- **"Build failed"**: Ensure all dependencies are installed with `npm install`
+- **"Environment variables missing"**: Check that all required env vars are set in Vercel dashboard
+
+### Quick Fixes
+1. **Backend down**: Visit [https://jouster-assignment.onrender.com/](https://jouster-assignment.onrender.com/) to wake it up
+2. **Frontend issues**: Clear browser cache and refresh
+3. **API errors**: Check browser console for detailed error messages
 
 ## 📝 Assignment Submission
 
